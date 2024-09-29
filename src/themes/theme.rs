@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
 pub struct Theme {
-    name: KString,
+    slug: KString,
     #[serde(flatten)]
     manifest: ThemeManifest,
     #[serde(skip)]
@@ -24,4 +24,14 @@ pub struct ThemeManifest {
 pub struct ThemeManifestTailwind {
     pub input: KString,
     pub config: KString,
+}
+
+impl Theme {
+    pub fn slug(&self) -> &str {
+        &self.slug
+    }
+
+    pub fn name(&self) -> &str {
+        &self.manifest.name
+    }
 }

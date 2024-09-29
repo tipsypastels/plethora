@@ -2,6 +2,7 @@ use liquid::model::ScalarCow;
 use liquid_core::{runtime, Value};
 use std::{fmt, sync::Arc};
 
+mod globals;
 mod parser;
 
 pub use parser::Parser;

@@ -3,28 +3,29 @@ use anyhow::Result;
 use axum::{extract::FromRequestParts, http::request::Parts};
 use std::convert::Infallible;
 
-mod extra;
+mod current;
+mod hooks;
 
-pub use extra::{Extra, ServerExtra};
+pub use hooks::{Hooks, ServerHooks};
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-pub struct Server<E> {
+pub struct Server<H> {
     pub db: Db,
     pub styles: Styles,
     pub themes: Themes,
-    pub extra: E,
+    pub hooks: H,
 }
 
 #[derive(Debug)]
-pub struct ServerInit<E> {
+pub struct ServerInit<H> {
     pub db: Db,
-    pub extra: E,
+    pub hooks: H,
 }
 
-impl<E> Server<E> {
-    pub async fn new(init: ServerInit<E>) -> Result<Self> {
-        let ServerInit { db, extra } = init;
+impl<H> Server<H> {
+    pub async fn new(init: ServerInit<H>) -> Result<Self> {
+        let ServerInit { db, hooks } = init;
 
         let styles = Styles::new().await?;
         let themes = Themes::new(styles.clone()).await?;
@@ -33,13 +34,13 @@ impl<E> Server<E> {
             db,
             styles,
             themes,
-            extra,
+            hooks,
         })
     }
 }
 
 #[axum::async_trait]
-impl<E: Extra> FromRequestParts<Server<E>> for Server<E> {
+impl<H: Hooks> FromRequestParts<Server<H>> for Server<H> {
     type Rejection = Infallible;
 
     async fn from_request_parts(_parts: &mut Parts, server: &Self) -> Result<Self, Infallible> {
@@ -57,10 +58,10 @@ macro_rules! server_accessors {
     ($($field:ident: $ty:ty),*$(,)?) => {
         $(
             #[axum::async_trait]
-            impl<E: Extra> FromRequestParts<Server<E>> for $ty {
+            impl<H: Hooks> FromRequestParts<Server<H>> for $ty {
                 type Rejection = Infallible;
 
-                async fn from_request_parts(_: &mut Parts, app: &Server<E>) -> Result<$ty, Infallible> {
+                async fn from_request_parts(_: &mut Parts, app: &Server<H>) -> Result<$ty, Infallible> {
                     Ok(app.$field.clone())
                 }
             }

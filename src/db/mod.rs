@@ -1,4 +1,7 @@
 use anyhow::Result;
+use uuid::Uuid;
+
+pub type Id = Uuid;
 
 #[derive(Debug, Clone)]
 pub struct Db {}
