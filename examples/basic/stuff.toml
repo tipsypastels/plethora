@@ -1,0 +1,8 @@
+[db]
+url = "foo"
+
+[log]
+filter = "debug"
+
+[setup]
+theme = "bar"

@@ -1,0 +1,29 @@
+reload = false
+
+[lang]
+dir = "languages"
+
+[log]
+dir = ".log"
+filter = "info"
+
+[public]
+dir = "public"
+
+[scratch]
+dir = ".plethora"
+
+[scripts]
+dir = "scripts"
+glob = "packs/**/*.ts"
+autoload = ["base.js"]
+
+[templates]
+boundary_comments = false
+
+[themes]
+dir = "themes"
+manifest_path = "mod.toml"
+
+[web]
+addr = "127.0.0.1:3000"
