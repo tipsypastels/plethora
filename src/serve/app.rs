@@ -19,7 +19,10 @@ pub struct AppInit<H> {
     pub hooks: H,
 }
 
-impl<H> App<H> {
+impl<H> App<H>
+where
+    H: Hooks,
+{
     pub async fn new(init: AppInit<H>) -> Result<Self> {
         let AppInit { db, hooks } = init;
 

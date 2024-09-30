@@ -2,7 +2,9 @@ mod app;
 mod current;
 mod error;
 mod hooks;
+mod reload;
 mod render;
+mod router;
 
 pub use app::{App, AppInit};
 pub use current::{
