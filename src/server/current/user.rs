@@ -49,17 +49,8 @@ impl<H: Hooks> FromRequestParts<Server<H>> for CurrentUserState<H> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CurrentUser<H: Hooks>(Arc<H::User>);
-
-impl<H: Hooks> Serialize for CurrentUser<H>
-where
-    H::User: Serialize,
-{
-    fn serialize<S: serde::Serializer>(&self, ser: S) -> Result<S::Ok, S::Error> {
-        self.0.serialize(ser)
-    }
-}
 
 impl<H: Hooks> Deref for CurrentUser<H> {
     type Target = H::User;

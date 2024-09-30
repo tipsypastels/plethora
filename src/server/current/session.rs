@@ -1,11 +1,12 @@
 use crate::{
     db::Id,
-    server::{hooks::HooksSession, Hooks, Server},
+    server::{hooks::SessionHooks, Hooks, Server},
 };
 use axum::{
     extract::FromRequestParts,
     http::{request::Parts, Extensions},
 };
+use serde::Serialize;
 use std::{convert::Infallible, ops::Deref, sync::Arc};
 use tower_cookies::Cookies;
 
@@ -51,7 +52,7 @@ impl<H: Hooks> CurrentSessionState<H> {
     }
 
     pub fn user_id(&self) -> Option<Id> {
-        self.get().map(|s| s.hooks_session_user_id())
+        self.get().map(|s| s.session_user_id())
     }
 }
 
@@ -64,6 +65,7 @@ impl<H: Hooks> FromRequestParts<Server<H>> for CurrentSessionState<H> {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
 pub struct CurrentSession<H: Hooks>(Arc<H::Session>);
 
 impl<H: Hooks> Deref for CurrentSession<H> {

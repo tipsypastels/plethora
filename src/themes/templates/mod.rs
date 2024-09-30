@@ -1,10 +1,14 @@
+use anyhow::Result;
 use liquid::model::ScalarCow;
-use liquid_core::{runtime, Value};
+use liquid_core::{runtime, Renderable, Value};
 use std::{fmt, sync::Arc};
 
 mod globals;
 mod parser;
 
+pub use globals::{
+    ErrorGlobals, Globals, LayoutGlobals, NotFoundGlobals, SharedGlobals, TemplateGlobals,
+};
 pub use parser::Parser;
 
 const BASE: &str = r#"{% include template %}"#;
@@ -21,6 +25,27 @@ impl Templates {
         let partials = parser.partials.clone();
 
         Self { template, partials }
+    }
+
+    pub fn render(&self, globals: &Globals) -> Result<String> {
+        self.render_with_snapshot(globals).map(|v| v.0)
+    }
+
+    pub fn render_with_snapshot<'a>(
+        &'a self,
+        globals: &'a Globals,
+    ) -> Result<(String, Snapshot<'a>)> {
+        let runtime = runtime::RuntimeBuilder::new()
+            .set_globals(globals.as_object_view())
+            .set_partials(self.partials.as_ref())
+            .build();
+
+        let html = self.template.render(&runtime)?;
+        let snapshot = Snapshot {
+            runtime: Box::new(runtime),
+        };
+
+        Ok((html, snapshot))
     }
 }
 

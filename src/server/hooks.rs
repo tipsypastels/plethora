@@ -6,11 +6,12 @@ use axum::{
     http::request::Parts,
     response::Redirect,
 };
+use serde::Serialize;
 use std::{convert::Infallible, fmt};
 
 pub trait Hooks: fmt::Debug + Clone + Send + Sync + 'static {
-    type Session: HooksSession;
-    type User: HooksUser;
+    type Session: SessionHooks;
+    type User: UserHooks;
 
     fn base_page_title(&self) -> Option<&str> {
         None
@@ -37,23 +38,27 @@ pub trait Hooks: fmt::Debug + Clone + Send + Sync + 'static {
 }
 
 impl Hooks for () {
-    type Session = Infallible;
-    type User = Infallible;
+    type Session = Never;
+    type User = Never;
 }
 
-pub trait HooksSession: fmt::Debug + Clone + Send + Sync + 'static {
-    fn hooks_session_user_id(&self) -> Id;
+pub trait SessionHooks: fmt::Debug + Serialize + Clone + Send + Sync + 'static {
+    fn session_user_id(&self) -> Id;
 }
 
-impl HooksSession for Infallible {
-    fn hooks_session_user_id(&self) -> Id {
+impl SessionHooks for Never {
+    fn session_user_id(&self) -> Id {
         match *self {}
     }
 }
 
-pub trait HooksUser: fmt::Debug + Clone + Send + Sync + 'static {}
+pub trait UserHooks: fmt::Debug + Serialize + Clone + Send + Sync + 'static {}
 
-impl HooksUser for Infallible {}
+impl UserHooks for Never {}
+
+// Can't use `Infallible`, it's not `Serialize`.
+#[derive(Debug, Serialize, Clone)]
+pub enum Never {}
 
 #[derive(Debug, Clone)]
 pub struct ServerHooks<H>(pub H);

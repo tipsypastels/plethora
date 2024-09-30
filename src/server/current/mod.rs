@@ -18,6 +18,7 @@ pub use theme::CurrentThemeState;
 pub use user::{CurrentUser, CurrentUserState};
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct CurrentState<H: Hooks> {
     pub theme: CurrentThemeState,
     pub session: CurrentSessionState<H>,
