@@ -1,7 +1,13 @@
-use super::templates::Templates;
-use crate::{scratch, stuff::STUFF};
+use super::templates::*;
+use crate::{
+    scratch,
+    server::{CurrentState, Hooks},
+    stuff::STUFF,
+};
+use anyhow::{Error, Result};
 use camino::Utf8PathBuf;
 use kstring::KString;
+use liquid::Object;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
@@ -51,5 +57,91 @@ impl Theme {
 
     pub fn tailwind_config_path(&self) -> Utf8PathBuf {
         self.dir().join(self.manifest.tailwind.config.as_str())
+    }
+
+    pub fn render<H: Hooks>(
+        &self,
+        template: &str,
+        base_title: &str,
+        props: Object,
+        current: &CurrentState<H>,
+    ) -> Result<String> {
+        let shared = self.shared_globals(template, current);
+        let globals = TemplateGlobals { shared, props };
+        self.render_inner(base_title, globals, current)
+    }
+
+    pub fn render_error<H: Hooks>(
+        &self,
+        error: &Error,
+        base_title: &str,
+        current: &CurrentState<H>,
+    ) -> Result<String> {
+        let template = &self.manifest.error;
+        let shared = self.shared_globals(template, current);
+        let globals = ErrorGlobals { shared, error };
+        self.render_inner(base_title, globals, current)
+    }
+
+    pub fn render_not_found<H: Hooks>(
+        &self,
+        base_title: &str,
+        current: &CurrentState<H>,
+    ) -> Result<String> {
+        let template = &self.manifest.not_found;
+        let shared = self.shared_globals(template, current);
+        let globals = NotFoundGlobals { shared };
+        self.render_inner(base_title, globals, current)
+    }
+
+    fn render_inner<H: Hooks>(
+        &self,
+        base_title: &str,
+        globals: impl Into<Globals>,
+        current: &CurrentState<H>,
+    ) -> Result<String> {
+        let globals = globals.into();
+        let (content, snapshot) = self.templates.render_with_snapshot(&globals)?;
+        self.render_layout(&content, base_title, snapshot, current)
+    }
+
+    fn render_layout<H: Hooks>(
+        &self,
+        content: &str,
+        base_title: &str,
+        snapshot: Snapshot,
+        current: &CurrentState<H>,
+    ) -> Result<String> {
+        let template = &self.manifest.layout;
+        let scripts = STUFF.scripts.autoload.clone();
+        let title = base_title;
+        let _ = snapshot;
+        // TODO
+        // let title = view.title(base_title);
+
+        // scripts.extend(view.included_scripts());
+
+        let shared = self.shared_globals(template, current);
+        let globals = LayoutGlobals {
+            shared,
+            title: Some(title),
+            content,
+            scripts: &scripts,
+        }
+        .into();
+
+        self.templates.render(&globals)
+    }
+
+    fn shared_globals<'a, H: Hooks>(
+        &'a self,
+        template: &'a str,
+        current: &'a CurrentState<H>,
+    ) -> SharedGlobals<'a, H> {
+        SharedGlobals {
+            current,
+            theme: self,
+            template,
+        }
     }
 }
