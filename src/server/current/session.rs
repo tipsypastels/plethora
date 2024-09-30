@@ -2,11 +2,16 @@ use crate::{
     db::Id,
     server::{hooks::HooksSession, Hooks, Server},
 };
-use std::{ops::Deref, sync::Arc};
+use axum::{
+    extract::FromRequestParts,
+    http::{request::Parts, Extensions},
+};
+use std::{convert::Infallible, ops::Deref, sync::Arc};
 use tower_cookies::Cookies;
 
 const COOKIE: &str = "plethora-session";
 
+#[derive(Debug, Clone)]
 pub struct CurrentSessionState<H: Hooks>(Option<Arc<H::Session>>);
 
 impl<H: Hooks> CurrentSessionState<H> {
@@ -33,6 +38,10 @@ impl<H: Hooks> CurrentSessionState<H> {
         }
     }
 
+    pub fn extension(extensions: &Extensions) -> Self {
+        super::CurrentState::extension(extensions).session
+    }
+
     pub fn empty() -> Self {
         Self(None)
     }
@@ -43,6 +52,15 @@ impl<H: Hooks> CurrentSessionState<H> {
 
     pub fn user_id(&self) -> Option<Id> {
         self.get().map(|s| s.hooks_session_user_id())
+    }
+}
+
+#[axum::async_trait]
+impl<H: Hooks> FromRequestParts<Server<H>> for CurrentSessionState<H> {
+    type Rejection = Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+        Ok(Self::extension(&parts.extensions))
     }
 }
 

@@ -3,9 +3,12 @@ use crate::{
     themes::{ThemeGuard, Themes},
 };
 use anyhow::{Context, Result};
-use axum::extract::{Query, Request};
+use axum::{
+    extract::{FromRequestParts, Query, Request},
+    http::{request::Parts, Extensions},
+};
 use serde::Deserialize;
-use std::sync::Arc;
+use std::{convert::Infallible, sync::Arc};
 use tower_cookies::Cookies;
 
 const COOKIE: &str = "plethora-theme";
@@ -33,6 +36,10 @@ impl CurrentThemeState {
         Self(Arc::from(slug))
     }
 
+    pub fn extension<H: Hooks>(extensions: &Extensions) -> Self {
+        super::CurrentState::<H>::extension(extensions).theme
+    }
+
     pub fn slug(&self) -> &str {
         &self.0
     }
@@ -41,6 +48,15 @@ impl CurrentThemeState {
         themes
             .get(&self.0)
             .with_context(|| format!("unknown theme {}", self.0))
+    }
+}
+
+#[axum::async_trait]
+impl<H: Hooks> FromRequestParts<Server<H>> for CurrentThemeState {
+    type Rejection = Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+        Ok(Self::extension::<H>(&parts.extensions))
     }
 }
 

@@ -6,9 +6,9 @@ use axum::{
     http::request::Parts,
     response::Redirect,
 };
-use std::convert::Infallible;
+use std::{convert::Infallible, fmt};
 
-pub trait Hooks: Clone + Send + Sync + 'static {
+pub trait Hooks: fmt::Debug + Clone + Send + Sync + 'static {
     type Session: HooksSession;
     type User: HooksUser;
 
@@ -41,7 +41,7 @@ impl Hooks for () {
     type User = Infallible;
 }
 
-pub trait HooksSession: Clone + Send + Sync + 'static {
+pub trait HooksSession: fmt::Debug + Clone + Send + Sync + 'static {
     fn hooks_session_user_id(&self) -> Id;
 }
 
@@ -51,7 +51,7 @@ impl HooksSession for Infallible {
     }
 }
 
-pub trait HooksUser: Clone + Send + Sync + 'static {}
+pub trait HooksUser: fmt::Debug + Clone + Send + Sync + 'static {}
 
 impl HooksUser for Infallible {}
 
