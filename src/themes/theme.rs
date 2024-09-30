@@ -62,7 +62,7 @@ impl Theme {
     pub fn render<H: Hooks>(
         &self,
         template: &str,
-        base_title: &str,
+        base_title: Option<&str>,
         props: Object,
         current: &CurrentState<H>,
     ) -> Result<String> {
@@ -74,7 +74,7 @@ impl Theme {
     pub fn render_error<H: Hooks>(
         &self,
         error: &Error,
-        base_title: &str,
+        base_title: Option<&str>,
         current: &CurrentState<H>,
     ) -> Result<String> {
         let template = &self.manifest.error;
@@ -85,7 +85,7 @@ impl Theme {
 
     pub fn render_not_found<H: Hooks>(
         &self,
-        base_title: &str,
+        base_title: Option<&str>,
         current: &CurrentState<H>,
     ) -> Result<String> {
         let template = &self.manifest.not_found;
@@ -96,7 +96,7 @@ impl Theme {
 
     fn render_inner<H: Hooks>(
         &self,
-        base_title: &str,
+        base_title: Option<&str>,
         globals: impl Into<Globals>,
         current: &CurrentState<H>,
     ) -> Result<String> {
@@ -108,7 +108,7 @@ impl Theme {
     fn render_layout<H: Hooks>(
         &self,
         content: &str,
-        base_title: &str,
+        base_title: Option<&str>,
         snapshot: Snapshot,
         current: &CurrentState<H>,
     ) -> Result<String> {
@@ -124,7 +124,7 @@ impl Theme {
         let shared = self.shared_globals(template, current);
         let globals = LayoutGlobals {
             shared,
-            title: Some(title),
+            title,
             content,
             scripts: &scripts,
         }

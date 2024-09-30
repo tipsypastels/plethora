@@ -7,6 +7,7 @@ use std::{fmt, ops::Deref, sync::Arc};
 mod templates;
 mod theme;
 
+pub use liquid::object as props;
 pub use theme::{Theme, ThemeManifest, ThemeManifestTailwind};
 
 #[derive(Debug, Clone)]
