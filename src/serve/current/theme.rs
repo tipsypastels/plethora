@@ -1,5 +1,5 @@
 use crate::{
-    server::{Hooks, Server},
+    serve::{App, Hooks},
     themes::{ThemeGuard, Themes},
 };
 use anyhow::{Context, Result};
@@ -17,12 +17,12 @@ const COOKIE: &str = "plethora-theme";
 pub struct CurrentThemeState(Arc<str>);
 
 impl CurrentThemeState {
-    pub(super) fn new<H: Hooks>(server: &Server<H>, request: &Request, cookies: &Cookies) -> Self {
-        let themes = &server.themes;
+    pub(super) fn new<H: Hooks>(app: &App<H>, request: &Request, cookies: &Cookies) -> Self {
+        let themes = &app.themes;
         let current_slug = get_slug(request, cookies);
         let slug = current_slug
             .and_then(|slug| themes.get(&slug))
-            .or_else(|| themes.get(server.hooks.default_theme_slug()?))
+            .or_else(|| themes.get(app.hooks.default_theme_slug()?))
             .map(|theme| theme.slug().into())
             .unwrap_or_else(|| {
                 tracing::warn!("no set or default theme");
@@ -52,10 +52,10 @@ impl CurrentThemeState {
 }
 
 #[axum::async_trait]
-impl<H: Hooks> FromRequestParts<Server<H>> for CurrentThemeState {
+impl<H: Hooks> FromRequestParts<App<H>> for CurrentThemeState {
     type Rejection = Infallible;
 
-    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+    async fn from_request_parts(parts: &mut Parts, _: &App<H>) -> Result<Self, Infallible> {
         Ok(Self::extension::<H>(&parts.extensions))
     }
 }

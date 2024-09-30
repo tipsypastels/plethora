@@ -1,6 +1,6 @@
 use crate::{
     db::Id,
-    server::{hooks::SessionHooks, Hooks, Server},
+    serve::{App, Hooks, SessionHooks},
 };
 use axum::{
     extract::FromRequestParts,
@@ -16,7 +16,7 @@ const COOKIE: &str = "plethora-session";
 pub struct CurrentSessionState<H: Hooks>(Option<Arc<H::Session>>);
 
 impl<H: Hooks> CurrentSessionState<H> {
-    pub(super) async fn new(server: &Server<H>, cookies: &Cookies) -> Self {
+    pub(super) async fn new(app: &App<H>, cookies: &Cookies) -> Self {
         let Some(cookie) = cookies.get(COOKIE) else {
             return Self(None);
         };
@@ -26,11 +26,7 @@ impl<H: Hooks> CurrentSessionState<H> {
             return Self(None);
         };
 
-        match server
-            .hooks
-            .get_current_session(&server.db, session_id)
-            .await
-        {
+        match app.hooks.get_current_session(&app.db, session_id).await {
             Ok(session) => Self(session.map(Arc::new)),
             Err(error) => {
                 tracing::error!("error resolving current session: {error}");
@@ -57,10 +53,10 @@ impl<H: Hooks> CurrentSessionState<H> {
 }
 
 #[axum::async_trait]
-impl<H: Hooks> FromRequestParts<Server<H>> for CurrentSessionState<H> {
+impl<H: Hooks> FromRequestParts<App<H>> for CurrentSessionState<H> {
     type Rejection = Infallible;
 
-    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+    async fn from_request_parts(parts: &mut Parts, _: &App<H>) -> Result<Self, Infallible> {
         Ok(Self::extension(&parts.extensions))
     }
 }

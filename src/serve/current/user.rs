@@ -1,6 +1,6 @@
 use crate::{
     db::Id,
-    server::{Hooks, Server},
+    serve::{App, Hooks},
 };
 use axum::{
     extract::FromRequestParts,
@@ -13,12 +13,12 @@ use std::{convert::Infallible, ops::Deref, sync::Arc};
 pub struct CurrentUserState<H: Hooks>(Option<Arc<H::User>>);
 
 impl<H: Hooks> CurrentUserState<H> {
-    pub(super) async fn new(server: &Server<H>, id: Option<Id>) -> Self {
+    pub(super) async fn new(app: &App<H>, id: Option<Id>) -> Self {
         let Some(id) = id else {
             return Self(None);
         };
 
-        match server.hooks.get_current_user(&server.db, id).await {
+        match app.hooks.get_current_user(&app.db, id).await {
             Ok(user) => Self(user.map(Arc::new)),
             Err(error) => {
                 tracing::error!("error resolving current user: {error}");
@@ -41,10 +41,10 @@ impl<H: Hooks> CurrentUserState<H> {
 }
 
 #[axum::async_trait]
-impl<H: Hooks> FromRequestParts<Server<H>> for CurrentUserState<H> {
+impl<H: Hooks> FromRequestParts<App<H>> for CurrentUserState<H> {
     type Rejection = Infallible;
 
-    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+    async fn from_request_parts(parts: &mut Parts, _: &App<H>) -> Result<Self, Infallible> {
         Ok(Self::extension(&parts.extensions))
     }
 }

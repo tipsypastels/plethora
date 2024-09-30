@@ -1,5 +1,5 @@
 use crate::{
-    server::{CurrentState, Hooks},
+    serve::{CurrentState, Hooks},
     stuff::STUFF,
     themes::Theme,
 };

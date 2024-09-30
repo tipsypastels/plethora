@@ -1,5 +1,5 @@
 use super::{Renderer, ServeError, ServeResult};
-use crate::server::Hooks;
+use crate::serve::Hooks;
 use anyhow::Error;
 use std::future::Future;
 

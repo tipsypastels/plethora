@@ -1,4 +1,4 @@
-use super::Server;
+use super::App;
 use crate::db::{Db, Id};
 use anyhow::Result;
 use axum::{
@@ -61,13 +61,13 @@ impl UserHooks for Never {}
 pub enum Never {}
 
 #[derive(Debug, Clone)]
-pub struct ServerHooks<H>(pub H);
+pub struct AppHooks<H>(pub H);
 
 #[axum::async_trait]
-impl<H: Hooks> FromRequestParts<Server<H>> for ServerHooks<H> {
+impl<H: Hooks> FromRequestParts<App<H>> for AppHooks<H> {
     type Rejection = Infallible;
 
-    async fn from_request_parts(_: &mut Parts, server: &Server<H>) -> Result<Self, Infallible> {
-        Ok(ServerHooks(server.hooks.clone()))
+    async fn from_request_parts(_: &mut Parts, app: &App<H>) -> Result<Self, Infallible> {
+        Ok(AppHooks(app.hooks.clone()))
     }
 }

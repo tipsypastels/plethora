@@ -8,6 +8,7 @@ mod traits;
 pub type ServeResult<T = Response> = Result<T, ServeError>;
 pub use traits::*;
 
+#[derive(Debug)]
 pub struct ServeError {
     response: Response,
 }

@@ -1,4 +1,4 @@
-use super::{Hooks, Server};
+use super::{App, Hooks};
 use axum::{
     extract::{FromRequestParts, Request},
     http::{request::Parts, Extensions},
@@ -47,23 +47,23 @@ impl<H: Hooks> CurrentState<H> {
 }
 
 #[axum::async_trait]
-impl<H: Hooks> FromRequestParts<Server<H>> for CurrentState<H> {
+impl<H: Hooks> FromRequestParts<App<H>> for CurrentState<H> {
     type Rejection = Infallible;
 
-    async fn from_request_parts(parts: &mut Parts, _: &Server<H>) -> Result<Self, Infallible> {
+    async fn from_request_parts(parts: &mut Parts, _: &App<H>) -> Result<Self, Infallible> {
         Ok(Self::extension(&parts.extensions))
     }
 }
 
 pub async fn layer<H: Hooks>(
-    server: Server<H>,
+    app: App<H>,
     cookies: Cookies,
     mut request: Request,
     next: Next,
 ) -> Result<Response, Infallible> {
-    let theme = CurrentThemeState::new(&server, &request, &cookies);
-    let session = CurrentSessionState::new(&server, &cookies).await;
-    let user = CurrentUserState::new(&server, session.user_id()).await;
+    let theme = CurrentThemeState::new(&app, &request, &cookies);
+    let session = CurrentSessionState::new(&app, &cookies).await;
+    let user = CurrentUserState::new(&app, session.user_id()).await;
     let current = CurrentState {
         theme,
         session,

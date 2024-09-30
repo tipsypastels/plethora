@@ -6,7 +6,7 @@ pub use anyhow as error;
 pub mod binary;
 pub mod db;
 pub mod scratch;
-pub mod server;
+pub mod serve;
 pub mod stuff;
 pub mod styles;
 pub mod themes;

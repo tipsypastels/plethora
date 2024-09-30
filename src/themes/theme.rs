@@ -1,7 +1,7 @@
 use super::templates::*;
 use crate::{
     scratch,
-    server::{CurrentState, Hooks},
+    serve::{CurrentState, Hooks},
     stuff::STUFF,
 };
 use anyhow::{Error, Result};
