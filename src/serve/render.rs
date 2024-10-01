@@ -17,7 +17,7 @@ pub trait Renderer: Clone + Send + Sync + 'static {
     }
 
     fn try_render(&self, template: &str, props: Object) -> Result<Response> {
-        let theme = dbg!(self.theme())?;
+        let theme = self.theme()?;
         let base_title = self.app().base_page_title();
         let html = theme.render(template, base_title, props, self.current())?;
 

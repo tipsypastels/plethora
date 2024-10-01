@@ -62,6 +62,10 @@ impl Application for App {
     fn themes(&self) -> &Themes {
         &self.themes
     }
+
+    fn default_theme_slug(&self) -> &str {
+        "default"
+    }
 }
 
 #[plethora::async_trait]

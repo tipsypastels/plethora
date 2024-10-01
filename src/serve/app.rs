@@ -5,11 +5,9 @@ pub trait Application: Clone + Send + Sync + 'static {
     fn styles(&self) -> &Styles;
     fn themes(&self) -> &Themes;
 
-    fn base_page_title(&self) -> Option<&str> {
-        None
-    }
+    fn default_theme_slug(&self) -> &str;
 
-    fn default_theme_slug(&self) -> Option<&str> {
+    fn base_page_title(&self) -> Option<&str> {
         None
     }
 }
