@@ -6,7 +6,6 @@ use plethora::{
     db::{Db, Id},
     error::Result,
     serve::{current, Application, CurrentHooks, CurrentState, Renderer, ServeResult},
-    stuff::STUFF,
     styles::Styles,
     themes::{props, Themes},
     tower::ServiceBuilder,
@@ -14,7 +13,6 @@ use plethora::{
 };
 use serde::Serialize;
 use std::convert::Infallible;
-use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -27,9 +25,6 @@ async fn main() -> Result<()> {
     let themes = Themes::new(styles.clone()).await?;
     let app = App { db, styles, themes };
 
-    let addr = &STUFF.web.addr;
-    let listener = TcpListener::bind(addr.as_ref()).await?;
-
     let cookies = CookieManagerLayer::new();
     let current = from_fn_with_state(app.clone(), current::<Current, App>);
 
@@ -38,8 +33,7 @@ async fn main() -> Result<()> {
         .layer(ServiceBuilder::new().layer(cookies).layer(current))
         .with_state(app);
 
-    plethora::axum::serve(listener, router).await?;
-    Ok(())
+    plethora::serve(router).await
 }
 
 async fn index(re: Render) -> ServeResult {

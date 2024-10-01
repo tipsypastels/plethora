@@ -17,3 +17,5 @@ pub mod serve;
 pub mod stuff;
 pub mod styles;
 pub mod themes;
+
+pub use serve::serve;
