@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 plethora = { path = "../.." }
+serde = { version = "1.0.204", features = ["derive"] }
 tokio = { version = "1.38.0", features = ["full"] }

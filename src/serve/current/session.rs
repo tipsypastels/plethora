@@ -1,22 +1,16 @@
-use crate::{
-    db::Id,
-    serve::{App, Hooks, SessionHooks},
-};
-use axum::{
-    extract::FromRequestParts,
-    http::{request::Parts, Extensions},
-};
+use super::Current;
+use crate::{db::Id, serve::AsApp};
 use serde::Serialize;
-use std::{convert::Infallible, ops::Deref, sync::Arc};
+use std::{ops::Deref, sync::Arc};
 use tower_cookies::Cookies;
 
 const COOKIE: &str = "plethora-session";
 
-#[derive(Debug, Clone)]
-pub struct CurrentSessionState<H: Hooks>(Option<Arc<H::Session>>);
+#[derive(Debug)]
+pub struct CurrentSessionState<C: Current>(Option<Arc<C::Session>>);
 
-impl<H: Hooks> CurrentSessionState<H> {
-    pub(super) async fn new(app: &App<H>, cookies: &Cookies) -> Self {
+impl<C: Current> CurrentSessionState<C> {
+    pub(super) async fn new(app: &impl AsApp, cookies: &Cookies) -> Self {
         let Some(cookie) = cookies.get(COOKIE) else {
             return Self(None);
         };
@@ -26,7 +20,7 @@ impl<H: Hooks> CurrentSessionState<H> {
             return Self(None);
         };
 
-        match app.hooks.get_current_session(&app.db, session_id).await {
+        match C::session(app.as_db(), session_id).await {
             Ok(session) => Self(session.map(Arc::new)),
             Err(error) => {
                 tracing::error!("error resolving current session: {error}");
@@ -35,37 +29,36 @@ impl<H: Hooks> CurrentSessionState<H> {
         }
     }
 
-    pub fn extension(extensions: &Extensions) -> Self {
-        super::CurrentState::extension(extensions).session
-    }
-
     pub fn empty() -> Self {
         Self(None)
     }
 
-    pub fn get(&self) -> Option<CurrentSession<H>> {
+    pub fn get(&self) -> Option<CurrentSession<C>> {
         self.0.as_ref().cloned().map(CurrentSession)
     }
 
     pub fn user_id(&self) -> Option<Id> {
-        self.get().map(|s| s.session_user_id())
+        self.get().map(|s| C::user_id(&s))
     }
 }
 
-#[axum::async_trait]
-impl<H: Hooks> FromRequestParts<App<H>> for CurrentSessionState<H> {
-    type Rejection = Infallible;
-
-    async fn from_request_parts(parts: &mut Parts, _: &App<H>) -> Result<Self, Infallible> {
-        Ok(Self::extension(&parts.extensions))
+impl<C: Current> Clone for CurrentSessionState<C> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct CurrentSession<H: Hooks>(Arc<H::Session>);
+#[derive(Debug, Serialize)]
+pub struct CurrentSession<C: Current>(Arc<C::Session>);
 
-impl<H: Hooks> Deref for CurrentSession<H> {
-    type Target = H::Session;
+impl<C: Current> Clone for CurrentSession<C> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<C: Current> Deref for CurrentSession<C> {
+    type Target = C::Session;
 
     fn deref(&self) -> &Self::Target {
         &self.0

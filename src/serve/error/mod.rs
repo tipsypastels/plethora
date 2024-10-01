@@ -1,4 +1,4 @@
-use super::{Hooks, Renderer};
+use super::Render;
 use anyhow::Error;
 use axum::response::{IntoResponse, Response};
 
@@ -14,7 +14,7 @@ pub struct ServeError {
 }
 
 impl ServeError {
-    pub fn new<H: Hooks>(re: Renderer<H>, error: Error) -> Self {
+    pub fn new(re: impl Render, error: Error) -> Self {
         let response = match re.try_render_error(&error) {
             Ok(response) => response,
             Err(new_error) => fallback::render(error, new_error),
@@ -23,7 +23,7 @@ impl ServeError {
         Self { response }
     }
 
-    pub fn not_found<H: Hooks>(re: Renderer<H>) -> Self {
+    pub fn not_found(re: impl Render) -> Self {
         match re.try_render_not_found() {
             Ok(response) => Self { response },
             Err(error) => Self::new(re, error),
