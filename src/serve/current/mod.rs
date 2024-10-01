@@ -91,8 +91,8 @@ current_accessors! {
     user: CurrentUserState<C>,
 }
 
-pub async fn layer<C: Current>(
-    app: impl AsApp,
+pub async fn layer<A: AsApp, C: Current>(
+    app: A,
     cookies: Cookies,
     mut request: Request,
     next: Next,
