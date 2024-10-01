@@ -18,6 +18,7 @@ mod user;
 
 pub use language::{CurrentLanguage, CurrentLanguageState};
 pub use session::{CurrentSession, CurrentSessionState};
+pub use theme::CurrentThemeState;
 pub use user::{CurrentUser, CurrentUserState};
 
 pub trait Current: fmt::Debug + Clone + Send + Sync + 'static {
@@ -35,6 +36,7 @@ pub trait Current: fmt::Debug + Clone + Send + Sync + 'static {
 pub struct CurrentState<C: Current> {
     pub language: CurrentLanguageState<C>,
     pub session: CurrentSessionState<C>,
+    pub theme: CurrentThemeState<C>,
     pub user: CurrentUserState<C>,
 }
 
@@ -85,6 +87,7 @@ current_accessors! {
     <C>
     language: CurrentLanguageState<C>,
     session: CurrentSessionState<C>,
+    theme: CurrentThemeState<C>,
     user: CurrentUserState<C>,
 }
 
@@ -94,14 +97,14 @@ pub async fn layer<C: Current>(
     mut request: Request,
     next: Next,
 ) -> Result<Response, Infallible> {
-    // let theme = CurrentThemeState::new(&app, &request, &cookies);
     let language = CurrentLanguageState::new();
     let session = CurrentSessionState::new(&app, &cookies).await;
+    let theme = CurrentThemeState::new(&app, &request, &cookies);
     let user = CurrentUserState::new(&app, session.user_id()).await;
     let current = CurrentState::<C> {
-        // theme,
         language,
         session,
+        theme,
         user,
     };
 

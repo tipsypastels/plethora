@@ -1,5 +1,9 @@
 use super::templates::*;
-use crate::{scratch, stuff::STUFF};
+use crate::{
+    scratch,
+    serve::{Current, CurrentState},
+    stuff::STUFF,
+};
 use anyhow::{Error, Result};
 use camino::Utf8PathBuf;
 use kstring::KString;
@@ -55,23 +59,23 @@ impl Theme {
         self.dir().join(self.manifest.tailwind.config.as_str())
     }
 
-    pub fn render<H: Hooks>(
+    pub fn render<C: Current>(
         &self,
         template: &str,
         base_title: Option<&str>,
         props: Object,
-        current: &CurrentState<H>,
+        current: &CurrentState<C>,
     ) -> Result<String> {
         let shared = self.shared_globals(template, current);
         let globals = TemplateGlobals { shared, props };
         self.render_inner(base_title, globals, current)
     }
 
-    pub fn render_error<H: Hooks>(
+    pub fn render_error<C: Current>(
         &self,
         error: &Error,
         base_title: Option<&str>,
-        current: &CurrentState<H>,
+        current: &CurrentState<C>,
     ) -> Result<String> {
         let template = &self.manifest.error;
         let shared = self.shared_globals(template, current);
@@ -79,10 +83,10 @@ impl Theme {
         self.render_inner(base_title, globals, current)
     }
 
-    pub fn render_not_found<H: Hooks>(
+    pub fn render_not_found<C: Current>(
         &self,
         base_title: Option<&str>,
-        current: &CurrentState<H>,
+        current: &CurrentState<C>,
     ) -> Result<String> {
         let template = &self.manifest.not_found;
         let shared = self.shared_globals(template, current);
@@ -90,23 +94,23 @@ impl Theme {
         self.render_inner(base_title, globals, current)
     }
 
-    fn render_inner<H: Hooks>(
+    fn render_inner<C: Current>(
         &self,
         base_title: Option<&str>,
         globals: impl Into<Globals>,
-        current: &CurrentState<H>,
+        current: &CurrentState<C>,
     ) -> Result<String> {
         let globals = globals.into();
         let (content, snapshot) = self.templates.render_with_snapshot(&globals)?;
         self.render_layout(&content, base_title, snapshot, current)
     }
 
-    fn render_layout<H: Hooks>(
+    fn render_layout<C: Current>(
         &self,
         content: &str,
         base_title: Option<&str>,
         snapshot: Snapshot,
-        current: &CurrentState<H>,
+        current: &CurrentState<C>,
     ) -> Result<String> {
         let template = &self.manifest.layout;
         let scripts = STUFF.scripts.autoload.clone();
@@ -129,11 +133,11 @@ impl Theme {
         self.templates.render(&globals)
     }
 
-    fn shared_globals<'a, H: Hooks>(
+    fn shared_globals<'a, C: Current>(
         &'a self,
         template: &'a str,
-        current: &'a CurrentState<H>,
-    ) -> SharedGlobals<'a, H> {
+        current: &'a CurrentState<C>,
+    ) -> SharedGlobals<'a, C> {
         SharedGlobals {
             current,
             theme: self,

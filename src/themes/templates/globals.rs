@@ -1,4 +1,8 @@
-use crate::{stuff::STUFF, themes::Theme};
+use crate::{
+    serve::{Current, CurrentState},
+    stuff::STUFF,
+    themes::Theme,
+};
 use anyhow::Error;
 use kstring::KString;
 use liquid::{Object, ObjectView};
@@ -18,7 +22,7 @@ impl Globals {
         self.0.insert(key.into(), value);
     }
 
-    fn insert_shared<H: Hooks>(&mut self, shared: SharedGlobals<H>) {
+    fn insert_shared<C: Current>(&mut self, shared: SharedGlobals<C>) {
         self.insert("current_user", shared.current.user.get());
         self.insert("current_session", shared.current.session.get());
         self.insert("current_theme", shared.theme);
@@ -26,19 +30,19 @@ impl Globals {
     }
 }
 
-pub struct SharedGlobals<'a, H: Hooks> {
-    pub current: &'a CurrentState<H>,
+pub struct SharedGlobals<'a, C: Current> {
+    pub current: &'a CurrentState<C>,
     pub theme: &'a Theme,
     pub template: &'a str,
 }
 
-pub struct TemplateGlobals<'a, H: Hooks> {
+pub struct TemplateGlobals<'a, C: Current> {
     pub props: Object,
-    pub shared: SharedGlobals<'a, H>,
+    pub shared: SharedGlobals<'a, C>,
 }
 
-impl<H: Hooks> From<TemplateGlobals<'_, H>> for Globals {
-    fn from(globals: TemplateGlobals<'_, H>) -> Self {
+impl<C: Current> From<TemplateGlobals<'_, C>> for Globals {
+    fn from(globals: TemplateGlobals<'_, C>) -> Self {
         let mut this = Self(globals.props);
 
         this.insert_shared(globals.shared);
@@ -46,15 +50,15 @@ impl<H: Hooks> From<TemplateGlobals<'_, H>> for Globals {
     }
 }
 
-pub struct LayoutGlobals<'a, H: Hooks> {
-    pub shared: SharedGlobals<'a, H>,
+pub struct LayoutGlobals<'a, C: Current> {
+    pub shared: SharedGlobals<'a, C>,
     pub title: Option<&'a str>,
     pub content: &'a str,
     pub scripts: &'a [Box<str>],
 }
 
-impl<H: Hooks> From<LayoutGlobals<'_, H>> for Globals {
-    fn from(globals: LayoutGlobals<'_, H>) -> Self {
+impl<C: Current> From<LayoutGlobals<'_, C>> for Globals {
+    fn from(globals: LayoutGlobals<'_, C>) -> Self {
         let mut this = Self(Object::new());
 
         this.insert_shared(globals.shared);
@@ -67,13 +71,13 @@ impl<H: Hooks> From<LayoutGlobals<'_, H>> for Globals {
     }
 }
 
-pub struct ErrorGlobals<'a, H: Hooks> {
-    pub shared: SharedGlobals<'a, H>,
+pub struct ErrorGlobals<'a, C: Current> {
+    pub shared: SharedGlobals<'a, C>,
     pub error: &'a Error,
 }
 
-impl<H: Hooks> From<ErrorGlobals<'_, H>> for Globals {
-    fn from(globals: ErrorGlobals<'_, H>) -> Self {
+impl<C: Current> From<ErrorGlobals<'_, C>> for Globals {
+    fn from(globals: ErrorGlobals<'_, C>) -> Self {
         let mut this = Self(Object::new());
 
         this.insert_shared(globals.shared);
@@ -82,12 +86,12 @@ impl<H: Hooks> From<ErrorGlobals<'_, H>> for Globals {
     }
 }
 
-pub struct NotFoundGlobals<'a, H: Hooks> {
-    pub shared: SharedGlobals<'a, H>,
+pub struct NotFoundGlobals<'a, C: Current> {
+    pub shared: SharedGlobals<'a, C>,
 }
 
-impl<H: Hooks> From<NotFoundGlobals<'_, H>> for Globals {
-    fn from(globals: NotFoundGlobals<'_, H>) -> Self {
+impl<C: Current> From<NotFoundGlobals<'_, C>> for Globals {
+    fn from(globals: NotFoundGlobals<'_, C>) -> Self {
         let mut this = Self(Object::new());
 
         this.insert_shared(globals.shared);
