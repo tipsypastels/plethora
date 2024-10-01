@@ -5,7 +5,7 @@ use plethora::{
     },
     db::{Db, Id},
     error::Result,
-    serve::{layer, AsApp, CurrentState, Render, ServeResult},
+    serve::{current, Application, CurrentHooks, CurrentState, Renderer, ServeResult},
     stuff::STUFF,
     styles::Styles,
     themes::{props, Themes},
@@ -31,7 +31,7 @@ async fn main() -> Result<()> {
     let listener = TcpListener::bind(addr.as_ref()).await?;
 
     let cookies = CookieManagerLayer::new();
-    let current = from_fn_with_state(app.clone(), layer::<App, Current>);
+    let current = from_fn_with_state(app.clone(), current::<Current, App>);
 
     let router = Router::new()
         .route("/", get(index))
@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn index(re: Renderer) -> ServeResult {
+async fn index(re: Render) -> ServeResult {
     re.render("index", props!({}))
 }
 
@@ -53,16 +53,16 @@ struct App {
     pub themes: Themes,
 }
 
-impl AsApp for App {
-    fn as_db(&self) -> &Db {
+impl Application for App {
+    fn db(&self) -> &Db {
         &self.db
     }
 
-    fn as_styles(&self) -> &Styles {
+    fn styles(&self) -> &Styles {
         &self.styles
     }
 
-    fn as_themes(&self) -> &Themes {
+    fn themes(&self) -> &Themes {
         &self.themes
     }
 }
@@ -79,7 +79,7 @@ impl FromRequestParts<App> for App {
 #[derive(Debug, Clone)]
 struct Current;
 
-impl plethora::serve::Current for Current {
+impl CurrentHooks for Current {
     type Session = Session;
     type User = User;
 
@@ -106,12 +106,12 @@ struct Session {
 struct User;
 
 #[derive(Debug, Clone)]
-struct Renderer {
+struct Render {
     app: App,
     current: CurrentState<Current>,
 }
 
-impl Render for Renderer {
+impl Renderer for Render {
     type App = App;
     type Current = Current;
 
@@ -125,7 +125,7 @@ impl Render for Renderer {
 }
 
 #[plethora::async_trait]
-impl FromRequestParts<App> for Renderer {
+impl FromRequestParts<App> for Render {
     type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, app: &App) -> Result<Self, Infallible> {

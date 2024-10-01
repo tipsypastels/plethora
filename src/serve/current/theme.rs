@@ -1,4 +1,4 @@
-use super::{AsApp, Current};
+use super::{Application, CurrentHooks};
 use crate::themes::{ThemeGuard, Themes};
 use anyhow::{Context, Result};
 use axum::extract::{Query, Request};
@@ -14,9 +14,9 @@ pub struct CurrentThemeState<C> {
     _cur: PhantomData<C>,
 }
 
-impl<C: Current> CurrentThemeState<C> {
-    pub(super) fn new(app: &impl AsApp, request: &Request, cookies: &Cookies) -> Self {
-        let themes = &app.as_themes();
+impl<C: CurrentHooks> CurrentThemeState<C> {
+    pub(super) fn new(app: &impl Application, request: &Request, cookies: &Cookies) -> Self {
+        let themes = &app.themes();
         let current_slug = get_slug(request, cookies);
         let slug = current_slug
             .and_then(|slug| themes.get(&slug))

@@ -1,7 +1,7 @@
 use super::templates::*;
 use crate::{
     scratch,
-    serve::{Current, CurrentState},
+    serve::{CurrentHooks, CurrentState},
     stuff::STUFF,
 };
 use anyhow::{Error, Result};
@@ -59,7 +59,7 @@ impl Theme {
         self.dir().join(self.manifest.tailwind.config.as_str())
     }
 
-    pub fn render<C: Current>(
+    pub fn render<C: CurrentHooks>(
         &self,
         template: &str,
         base_title: Option<&str>,
@@ -71,7 +71,7 @@ impl Theme {
         self.render_inner(base_title, globals, current)
     }
 
-    pub fn render_error<C: Current>(
+    pub fn render_error<C: CurrentHooks>(
         &self,
         error: &Error,
         base_title: Option<&str>,
@@ -83,7 +83,7 @@ impl Theme {
         self.render_inner(base_title, globals, current)
     }
 
-    pub fn render_not_found<C: Current>(
+    pub fn render_not_found<C: CurrentHooks>(
         &self,
         base_title: Option<&str>,
         current: &CurrentState<C>,
@@ -94,7 +94,7 @@ impl Theme {
         self.render_inner(base_title, globals, current)
     }
 
-    fn render_inner<C: Current>(
+    fn render_inner<C: CurrentHooks>(
         &self,
         base_title: Option<&str>,
         globals: impl Into<Globals>,
@@ -105,7 +105,7 @@ impl Theme {
         self.render_layout(&content, base_title, snapshot, current)
     }
 
-    fn render_layout<C: Current>(
+    fn render_layout<C: CurrentHooks>(
         &self,
         content: &str,
         base_title: Option<&str>,
@@ -133,7 +133,7 @@ impl Theme {
         self.templates.render(&globals)
     }
 
-    fn shared_globals<'a, C: Current>(
+    fn shared_globals<'a, C: CurrentHooks>(
         &'a self,
         template: &'a str,
         current: &'a CurrentState<C>,

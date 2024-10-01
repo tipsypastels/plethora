@@ -1,5 +1,5 @@
-use super::Current;
-use crate::{db::Id, serve::AsApp};
+use super::CurrentHooks;
+use crate::{db::Id, serve::Application};
 use serde::Serialize;
 use std::{ops::Deref, sync::Arc};
 use tower_cookies::Cookies;
@@ -7,10 +7,10 @@ use tower_cookies::Cookies;
 const COOKIE: &str = "plethora-session";
 
 #[derive(Debug)]
-pub struct CurrentSessionState<C: Current>(Option<Arc<C::Session>>);
+pub struct CurrentSessionState<C: CurrentHooks>(Option<Arc<C::Session>>);
 
-impl<C: Current> CurrentSessionState<C> {
-    pub(super) async fn new(app: &impl AsApp, cookies: &Cookies) -> Self {
+impl<C: CurrentHooks> CurrentSessionState<C> {
+    pub(super) async fn new(app: &impl Application, cookies: &Cookies) -> Self {
         let Some(cookie) = cookies.get(COOKIE) else {
             return Self(None);
         };
@@ -20,7 +20,7 @@ impl<C: Current> CurrentSessionState<C> {
             return Self(None);
         };
 
-        match C::session(app.as_db(), session_id).await {
+        match C::session(app.db(), session_id).await {
             Ok(session) => Self(session.map(Arc::new)),
             Err(error) => {
                 tracing::error!("error resolving current session: {error}");
@@ -42,22 +42,22 @@ impl<C: Current> CurrentSessionState<C> {
     }
 }
 
-impl<C: Current> Clone for CurrentSessionState<C> {
+impl<C: CurrentHooks> Clone for CurrentSessionState<C> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct CurrentSession<C: Current>(Arc<C::Session>);
+pub struct CurrentSession<C: CurrentHooks>(Arc<C::Session>);
 
-impl<C: Current> Clone for CurrentSession<C> {
+impl<C: CurrentHooks> Clone for CurrentSession<C> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<C: Current> Deref for CurrentSession<C> {
+impl<C: CurrentHooks> Deref for CurrentSession<C> {
     type Target = C::Session;
 
     fn deref(&self) -> &Self::Target {

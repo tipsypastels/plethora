@@ -1,4 +1,4 @@
-use super::AsApp;
+use super::Application;
 use crate::db::{Db, Id};
 use anyhow::Result;
 use axum::{
@@ -21,7 +21,7 @@ pub use session::{CurrentSession, CurrentSessionState};
 pub use theme::CurrentThemeState;
 pub use user::{CurrentUser, CurrentUserState};
 
-pub trait Current: fmt::Debug + Clone + Send + Sync + 'static {
+pub trait CurrentHooks: fmt::Debug + Clone + Send + Sync + 'static {
     type Session: fmt::Debug + Serialize + Send + Sync + 'static;
     type User: fmt::Debug + Serialize + Send + Sync + 'static;
 
@@ -33,14 +33,14 @@ pub trait Current: fmt::Debug + Clone + Send + Sync + 'static {
 
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-pub struct CurrentState<C: Current> {
+pub struct CurrentState<C: CurrentHooks> {
     pub language: CurrentLanguageState<C>,
     pub session: CurrentSessionState<C>,
     pub theme: CurrentThemeState<C>,
     pub user: CurrentUserState<C>,
 }
 
-impl<C: Current> CurrentState<C> {
+impl<C: CurrentHooks> CurrentState<C> {
     pub fn get(request: &Request) -> Self {
         Self::extension(request.extensions())
     }
@@ -54,7 +54,7 @@ impl<C: Current> CurrentState<C> {
 }
 
 #[axum::async_trait]
-impl<S, C: Current> FromRequestParts<S> for CurrentState<C> {
+impl<S, C: CurrentHooks> FromRequestParts<S> for CurrentState<C> {
     type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Infallible> {
@@ -65,14 +65,14 @@ impl<S, C: Current> FromRequestParts<S> for CurrentState<C> {
 macro_rules! current_accessors {
     (<$type_var:ident> $($field:ident: $ty:ty),*$(,)?) => {
         $(
-            impl<$type_var: Current> $ty {
+            impl<$type_var: CurrentHooks> $ty {
                 pub fn extension(extensions: &Extensions) -> Self {
                     CurrentState::<$type_var>::extension(extensions).$field
                 }
             }
 
             #[axum::async_trait]
-            impl<S, $type_var: Current> FromRequestParts<S> for $ty {
+            impl<S, $type_var: CurrentHooks> FromRequestParts<S> for $ty {
                 type Rejection = Infallible;
 
                 async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<$ty, Infallible> {
@@ -91,7 +91,7 @@ current_accessors! {
     user: CurrentUserState<C>,
 }
 
-pub async fn layer<A: AsApp, C: Current>(
+pub async fn current<C: CurrentHooks, A: Application>(
     app: A,
     cookies: Cookies,
     mut request: Request,

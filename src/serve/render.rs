@@ -1,13 +1,13 @@
-use super::{AsApp, Current, CurrentState, ServeError, ServeResult};
+use super::{Application, CurrentHooks, CurrentState, ServeError, ServeResult};
 use crate::themes::ThemeGuard;
 use anyhow::{Error, Result};
 use axum::response::{Html, IntoResponse, Response};
 use liquid::Object;
 use reqwest::StatusCode;
 
-pub trait Render: Clone + Send + Sync + 'static {
-    type App: AsApp;
-    type Current: Current;
+pub trait Renderer: Clone + Send + Sync + 'static {
+    type App: Application;
+    type Current: CurrentHooks;
 
     fn render(&self, template: &str, props: Object) -> ServeResult {
         match self.try_render(template, props) {
@@ -41,7 +41,7 @@ pub trait Render: Clone + Send + Sync + 'static {
     }
 
     fn theme(&self) -> Result<ThemeGuard> {
-        self.current().theme.resolve(self.app().as_themes())
+        self.current().theme.resolve(self.app().themes())
     }
 
     fn app(&self) -> &Self::App;
