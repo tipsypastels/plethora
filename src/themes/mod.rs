@@ -1,12 +1,17 @@
+use self::ingest::Ingest;
 use crate::styles::Styles;
 use anyhow::Result;
 use dashmap::DashMap;
+use ingest::IngestMany;
 use kstring::KString;
 use std::{fmt, ops::Deref, sync::Arc};
 
+mod ingest;
 mod templates;
 mod theme;
 
+#[cfg(feature = "baked")]
+pub use include_dir::include_dir as baked;
 pub use liquid::object as props;
 pub use theme::{Theme, ThemeManifest, ThemeManifestTailwind};
 
@@ -16,10 +21,27 @@ pub struct Themes {
     styles: Styles,
 }
 
+#[derive(Debug)]
+pub struct ThemesInit {
+    pub styles: Styles,
+    #[cfg(feature = "baked")]
+    pub baked: include_dir::Dir<'static>,
+}
+
 impl Themes {
-    pub async fn new(styles: Styles) -> Result<Self> {
+    pub async fn new(init: ThemesInit) -> Result<Self> {
+        let ThemesInit {
+            styles,
+            #[cfg(feature = "baked")]
+            baked,
+        } = init;
+
         let map = Arc::new(DashMap::new());
         let this = Self { map, styles };
+
+        #[cfg(feature = "baked")]
+        this.ingest_many::<ingest::Baked>(baked).await?;
+        this.ingest_many::<ingest::Files>(()).await?;
 
         Ok(this)
     }
@@ -30,6 +52,22 @@ impl Themes {
 
     pub fn iter(&self) -> ThemeIter<'_> {
         ThemeIter(self.map.iter())
+    }
+
+    async fn ingest<I: Ingest>(&self, data: I::Data) -> Result<()> {
+        let theme = I::ingest(data).await?;
+        self.insert(theme).await
+    }
+
+    async fn ingest_many<I: IngestMany>(&self, dataset: I::Dataset) -> Result<()> {
+        I::ingest_many(dataset, |theme| self.insert(theme)).await
+    }
+
+    async fn insert(&self, theme: Theme) -> Result<()> {
+        // TODO
+        // self.styles.compile(&theme).await?;
+        self.map.insert(theme.slug.clone(), theme);
+        Ok(())
     }
 }
 

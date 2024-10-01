@@ -1470,6 +1470,7 @@ dependencies = [
  "liquid-core",
  "liquid-lib",
  "notify-debouncer-full",
+ "pin-project-lite",
  "reqwest",
  "serde",
  "serde_json",

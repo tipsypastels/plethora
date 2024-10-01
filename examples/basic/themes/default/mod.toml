@@ -1,0 +1,8 @@
+name = "default"
+layout = "_layouts/base"
+error = "_errors/error"
+not_found = "_errors/not_found"
+
+[tailwind]
+input = "_tailwind/input.css"
+config = "_tailwind/config.js"

@@ -7,7 +7,7 @@ use plethora::{
     error::Result,
     serve::{current, Application, CurrentHooks, CurrentState, Renderer, ServeResult},
     styles::Styles,
-    themes::{props, Themes},
+    themes::{props, Themes, ThemesInit},
     tower::ServiceBuilder,
     tower_cookies::CookieManagerLayer,
 };
@@ -22,7 +22,11 @@ async fn main() -> Result<()> {
 
     let db = Db::new().await?;
     let styles = Styles::new().await?;
-    let themes = Themes::new(styles.clone()).await?;
+    let themes = Themes::new(ThemesInit {
+        styles: styles.clone(),
+    })
+    .await?;
+
     let app = App { db, styles, themes };
 
     let cookies = CookieManagerLayer::new();

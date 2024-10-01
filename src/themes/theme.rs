@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
 pub struct Theme {
-    slug: KString,
+    pub(super) slug: KString,
     #[serde(flatten)]
-    manifest: ThemeManifest,
+    pub(super) manifest: ThemeManifest,
     #[serde(skip)]
-    templates: Templates,
+    pub(super) templates: Templates,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
