@@ -1,0 +1,12 @@
+{% title "Error" %}
+
+{% render "components/heading", title: "You got an error" %}
+
+<div class="card bg-red-400 p-4">
+  <h2 class="font-bold mb-2">
+    <i class="fas fa-triangle-exclamation"></i>
+    Error Message (Status Code: 500)
+  </h2>
+
+<pre>{{ error }}</pre>
+</div>

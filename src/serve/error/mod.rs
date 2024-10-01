@@ -15,7 +15,8 @@ pub struct ServeError {
 
 impl ServeError {
     pub fn new(re: impl Renderer, error: Error) -> Self {
-        let response = match re.try_render_error(&error) {
+        dbg!(&error);
+        let response = match dbg!(re.try_render_error(&error)) {
             Ok(response) => response,
             Err(new_error) => fallback::render(error, new_error),
         };

@@ -1,5 +1,5 @@
 name = "default"
-layout = "_layouts/base"
+layout = "_layouts/layout"
 error = "_errors/error"
 not_found = "_errors/not_found"
 

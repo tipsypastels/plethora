@@ -3,6 +3,7 @@ use liquid::model::ScalarCow;
 use liquid_core::{runtime, Renderable, Value};
 use std::{fmt, sync::Arc};
 
+mod extension;
 mod globals;
 mod parser;
 

@@ -1,3 +1,4 @@
+use super::extension::extension;
 use anyhow::Result;
 use liquid::partials::PartialCompiler;
 use liquid_core::{runtime, Language, ParseBlock, ParseFilter, ParseTag};
@@ -14,6 +15,7 @@ impl Parser {
         let mut language = Language::empty();
 
         stdlib(&mut language);
+        extension(&mut language);
 
         let language = Arc::new(language);
         let partials = compiler.compile(language.clone())?.into();
