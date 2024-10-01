@@ -1,9 +1,5 @@
 use super::templates::*;
-use crate::{
-    scratch,
-    serve::{CurrentState, Hooks},
-    stuff::STUFF,
-};
+use crate::{scratch, stuff::STUFF};
 use anyhow::{Error, Result};
 use camino::Utf8PathBuf;
 use kstring::KString;

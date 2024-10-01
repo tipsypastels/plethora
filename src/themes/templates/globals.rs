@@ -1,8 +1,4 @@
-use crate::{
-    serve::{CurrentState, Hooks},
-    stuff::STUFF,
-    themes::Theme,
-};
+use crate::{stuff::STUFF, themes::Theme};
 use anyhow::Error;
 use kstring::KString;
 use liquid::{Object, ObjectView};

@@ -1,71 +1,35 @@
-use super::Hooks;
-use crate::{db::Db, styles::Styles, themes::Themes};
+use super::{DynExtra, Extra};
+use crate::{db::Db, styles::Styles};
 use anyhow::Result;
-use axum::{extract::FromRequestParts, http::request::Parts};
-use std::convert::Infallible;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-#[non_exhaustive]
-pub struct App<H> {
+pub struct App {
     pub db: Db,
+    pub(crate) extra: DynExtra,
     pub styles: Styles,
-    pub themes: Themes,
-    pub hooks: H,
+    // pub themes: Themes,
 }
 
 #[derive(Debug)]
-pub struct AppInit<H> {
+pub struct AppInit<E> {
     pub db: Db,
-    pub hooks: H,
+    pub extra: Arc<E>,
 }
 
-impl<H> App<H>
-where
-    H: Hooks,
-{
-    pub async fn new(init: AppInit<H>) -> Result<Self> {
-        let AppInit { db, hooks } = init;
+impl App {
+    pub async fn new<E: Extra>(init: AppInit<E>) -> Result<Self> {
+        let AppInit { db, extra } = init;
+        let extra = DynExtra::new(extra);
 
         let styles = Styles::new().await?;
-        let themes = Themes::new(styles.clone()).await?;
+        // let themes = Themes::new(styles.clone());
 
         Ok(Self {
             db,
+            extra,
             styles,
-            themes,
-            hooks,
+            // themes,
         })
     }
 }
-
-#[axum::async_trait]
-impl<H: Hooks> FromRequestParts<App<H>> for App<H> {
-    type Rejection = Infallible;
-
-    async fn from_request_parts(_parts: &mut Parts, app: &Self) -> Result<Self, Infallible> {
-        Ok(app.clone())
-    }
-}
-
-app_accessors! {
-    db: Db,
-    styles: Styles,
-    themes: Themes,
-}
-
-macro_rules! app_accessors {
-    ($($field:ident: $ty:ty),*$(,)?) => {
-        $(
-            #[axum::async_trait]
-            impl<H: Hooks> FromRequestParts<App<H>> for $ty {
-                type Rejection = Infallible;
-
-                async fn from_request_parts(_: &mut Parts, app: &App<H>) -> Result<$ty, Infallible> {
-                    Ok(app.$field.clone())
-                }
-            }
-        )*
-    };
-}
-
-use app_accessors;
