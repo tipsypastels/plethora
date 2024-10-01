@@ -1,10 +1,11 @@
 use self::ingest::Ingest;
-use crate::styles::Styles;
+use crate::{reload::Reload, stuff::STUFF, styles::Styles};
 use anyhow::Result;
+use camino::{Utf8Path, Utf8PathBuf};
 use dashmap::DashMap;
 use ingest::IngestMany;
 use kstring::KString;
-use std::{fmt, ops::Deref, sync::Arc};
+use std::{fmt, future::Future, ops::Deref, sync::Arc};
 
 mod ingest;
 mod templates;
@@ -67,6 +68,24 @@ impl Themes {
         self.styles.compile(&theme).await?;
         self.map.insert(theme.slug.clone(), theme);
         Ok(())
+    }
+}
+
+#[allow(clippy::manual_async_fn)]
+impl Reload for Themes {
+    fn dir(&self) -> Option<&'static Utf8Path> {
+        Some(&STUFF.themes.dir)
+    }
+
+    fn reload(&self, mut path: Utf8PathBuf) -> impl Future<Output = Result<()>> + Send + 'static {
+        let this = self.clone();
+
+        async move {
+            while path.parent() != Some(&STUFF.themes.dir) {
+                path.pop();
+            }
+            this.ingest::<ingest::Files>(path).await
+        }
     }
 }
 

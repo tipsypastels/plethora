@@ -5,7 +5,10 @@ use plethora::{
     },
     db::{Db, Id},
     error::Result,
-    serve::{current, Application, CurrentHooks, CurrentState, Renderer, ServeResult},
+    reload::Reloader,
+    serve::{
+        current, public_router, Application, CurrentHooks, CurrentState, Renderer, ServeResult,
+    },
     styles::Styles,
     themes::{props, Themes, ThemesInit},
     tower::ServiceBuilder,
@@ -26,15 +29,24 @@ async fn main() -> Result<()> {
     })
     .await?;
 
-    let app = App { db, styles, themes };
+    let reloader = Reloader::new().reload(themes.clone()).build();
+
+    let app = App {
+        db,
+        styles,
+        themes,
+        reloader,
+    };
 
     let cookies = CookieManagerLayer::new();
     let current = from_fn_with_state(app.clone(), current::<Current, App>);
 
-    let router = Router::new()
+    let app_router = Router::new()
         .route("/", get(index))
         .layer(ServiceBuilder::new().layer(cookies).layer(current))
-        .with_state(app);
+        .with_state(app.clone());
+
+    let router = Router::new().merge(public_router(app)).merge(app_router);
 
     plethora::serve(router).await
 }
@@ -48,6 +60,7 @@ struct App {
     pub db: Db,
     pub styles: Styles,
     pub themes: Themes,
+    pub reloader: Reloader,
 }
 
 impl Application for App {
@@ -61,6 +74,10 @@ impl Application for App {
 
     fn themes(&self) -> &Themes {
         &self.themes
+    }
+
+    fn reloader(&self) -> &Reloader {
+        &self.reloader
     }
 
     fn default_theme_slug(&self) -> &str {

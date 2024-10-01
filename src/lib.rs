@@ -13,6 +13,7 @@ pub use tower_http;
 pub mod binary;
 pub mod db;
 pub mod helper;
+pub mod reload;
 pub mod scratch;
 pub mod serve;
 pub mod stuff;

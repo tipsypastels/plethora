@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="/styles/{{ current_theme.slug }}.css?{{ cache_buster }}" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-
     <script>
       window.CurrentTheme = {
         slug: "{{ current_theme.slug }}",
@@ -19,12 +12,9 @@
       };
     </script>
 
-    {% for script in scripts %}
-      <script src="/scripts/{{ script }}?{{ cache_buster }}"></script>
-    {% endfor %}
-
-    <script defer src="/fontawesome/solid.js"></script>
-    <script defer src="/fontawesome/fontawesome.js"></script>
+   {% if reload %}
+      <script defer src="/__reload__"></script>
+    {% endif %}
 
     <title>{{ title }}</title>
   </head>
@@ -33,13 +23,6 @@
       {{ content }}
     </div>
 
-    <div
-      class="absolute bottom-0 right-0 z-50 overflow-hidden transition-all"
-      data-controller="toasts"
-      data-toasts-base-class="card m-4 px-4 py-2 min-w-64 max-w-full text-white bg-swimsuit"
-      data-toasts-in-class="animate-toast-in"
-      data-toasts-out-class="animate-toast-out"></div>
-
-    <script src="/reload.js"></script>
+ 
   </body>
 </html>

@@ -63,7 +63,7 @@ where
                 templates,
             };
 
-            tracing::debug!(theme = %theme.slug, ingest = %I::KIND, "theme built");
+            tracing::debug!(target: "plethora::themes", theme = %theme.slug, from = %I::KIND, "theme ingested");
             Ok(theme)
         }
 

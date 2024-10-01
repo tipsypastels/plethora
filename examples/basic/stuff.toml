@@ -1,3 +1,5 @@
+reload = true
+
 [db]
 url = "foo"
 

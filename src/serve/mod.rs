@@ -1,6 +1,7 @@
 mod app;
 mod current;
 mod error;
+mod public;
 mod render;
 
 pub use app::Application;
@@ -9,6 +10,7 @@ pub use current::{
     CurrentSessionState, CurrentState, CurrentThemeState, CurrentUser, CurrentUserState,
 };
 pub use error::{OrNotFound, Re, ReFuture, ServeError, ServeResult};
+pub use public::router as public_router;
 pub use render::Renderer;
 
 pub async fn serve(router: axum::Router) -> anyhow::Result<()> {

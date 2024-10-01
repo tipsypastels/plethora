@@ -67,6 +67,7 @@ impl<C: CurrentHooks> From<LayoutGlobals<'_, C>> for Globals {
         this.insert("scripts", globals.scripts);
         this.insert("cache_buster", cache_buster());
         this.insert("is_layout", true);
+        this.insert("reload", STUFF.reload);
         this
     }
 }
