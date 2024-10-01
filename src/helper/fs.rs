@@ -78,6 +78,7 @@ pub fn walk_dir_async(path: &Utf8Path) -> t!(async) {
     }
 }
 
+#[derive(Debug)]
 pub struct ReadDir<I> {
     iter: I,
 }
@@ -111,6 +112,7 @@ where
 }
 
 pin_project_lite::pin_project! {
+    #[derive(Debug)]
     pub struct ReadDirAsync<S> {
         #[pin]
         stream: S,

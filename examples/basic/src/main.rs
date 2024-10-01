@@ -18,7 +18,6 @@ use std::convert::Infallible;
 async fn main() -> Result<()> {
     let _guard = plethora::stuff::builder().file("stuff.toml", true).init()?;
     plethora::scratch::init().await?;
-    plethora::binary::install().await?;
 
     let db = Db::new().await?;
     let styles = Styles::new().await?;

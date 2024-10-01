@@ -21,10 +21,11 @@ impl<C: CurrentHooks> CurrentThemeState<C> {
         let slug = current_slug
             .and_then(|slug| themes.get(&slug))
             .or_else(|| themes.get(app.default_theme_slug()?))
-            .map(|theme| theme.slug().into())
+            .map(|theme| theme.slug().as_str().into())
             .unwrap_or_else(|| {
                 tracing::warn!("no set or default theme");
-                themes.iter().next().expect("no themes").slug().into()
+                let theme = themes.iter().next().expect("no themes");
+                theme.slug().as_str().into()
             });
 
         Self {

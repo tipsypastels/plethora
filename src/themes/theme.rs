@@ -35,11 +35,11 @@ pub struct ThemeManifestTailwind {
 }
 
 impl Theme {
-    pub fn slug(&self) -> &str {
+    pub fn slug(&self) -> &KString {
         &self.slug
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &KString {
         &self.manifest.name
     }
 

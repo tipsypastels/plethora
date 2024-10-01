@@ -64,8 +64,7 @@ impl Themes {
     }
 
     async fn insert(&self, theme: Theme) -> Result<()> {
-        // TODO
-        // self.styles.compile(&theme).await?;
+        self.styles.compile(&theme).await?;
         self.map.insert(theme.slug.clone(), theme);
         Ok(())
     }
