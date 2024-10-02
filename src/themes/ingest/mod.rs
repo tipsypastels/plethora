@@ -7,11 +7,11 @@ use kstring::KString;
 use liquid::partials::{EagerCompiler, InMemorySource};
 use std::{future::Future, pin::pin};
 
-#[cfg(feature = "baked")]
+#[cfg(feature = "baked-themes")]
 mod baked;
 mod files;
 
-#[cfg(feature = "baked")]
+#[cfg(feature = "baked-themes")]
 pub use baked::Baked;
 pub use files::Files;
 

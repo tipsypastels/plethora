@@ -7,7 +7,7 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct ThemesBuilder {
     styles: Styles,
-    #[cfg(feature = "baked")]
+    #[cfg(feature = "baked-themes")]
     baked: Option<include_dir::Dir<'static>>,
 }
 
@@ -15,12 +15,12 @@ impl ThemesBuilder {
     pub(super) fn new(styles: Styles) -> Self {
         Self {
             styles,
-            #[cfg(feature = "baked")]
+            #[cfg(feature = "baked-themes")]
             baked: None,
         }
     }
 
-    #[cfg(feature = "baked")]
+    #[cfg(feature = "baked-themes")]
     pub fn baked(self, baked: include_dir::Dir<'static>) -> Self {
         Self {
             styles: self.styles,
@@ -33,7 +33,7 @@ impl ThemesBuilder {
         let styles = self.styles;
         let themes = Themes { map, styles };
 
-        #[cfg(feature = "baked")]
+        #[cfg(feature = "baked-themes")]
         if let Some(baked) = self.baked {
             themes.ingest_many::<ingest::Baked>(baked).await?;
         }

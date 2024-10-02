@@ -8,8 +8,8 @@ members = [".", "examples/*"]
 
 [features]
 default = ["langdir"]
-baked = ["dep:include_dir"]
-packaged = ["baked", "dep:tracing-appender"]
+baked-themes = ["dep:include_dir"]
+packaged = ["baked-themes", "dep:tracing-appender"]
 langdir = []
 
 [dependencies]
