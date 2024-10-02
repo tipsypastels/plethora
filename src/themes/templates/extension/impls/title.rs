@@ -29,13 +29,14 @@ impl Tag for Title {
 impl Snapshot<'_> {
     pub fn title(&self, base: Option<&str>) -> Option<KString> {
         let mut reg = self.runtime().registers().get_mut::<Register>();
-        let val = mem::take(&mut reg.0)?;
+        let title = mem::take(&mut reg.0);
 
-        Some(if let Some(base) = base {
-            format!("{val} • {base}").into()
-        } else {
-            val
-        })
+        match (title, base) {
+            (Some(title), Some(base)) => Some(format!("{title} • {base}").into()),
+            (Some(title), None) => Some(title),
+            (None, Some(base)) => Some(base.to_string().into()),
+            (None, None) => None,
+        }
     }
 }
 
