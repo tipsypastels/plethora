@@ -11,10 +11,11 @@ mod flatten;
 mod output;
 
 pub async fn install() -> Result<()> {
-    let did_install_tailwind = TAILWIND.state().await?;
-    let did_install_esbuild = ESBUILD.state().await?;
+    let tailwind = TAILWIND.state().await?;
+    let esbuild = ESBUILD.state().await?;
+    let pnpm = PNPM.state().await?;
 
-    if did_install_tailwind || did_install_esbuild {
+    if tailwind || esbuild || pnpm {
         tracing::info!("installation complete")
     } else {
         tracing::info!("nothing to do");
@@ -45,6 +46,18 @@ pub static ESBUILD: Source<output::TarGz, flatten::Dir> = Source {
     },
     output: output::TarGz,
     flatten: flatten::Dir("package/bin/esbuild"),
+};
+
+pub static PNPM: Source<output::File, flatten::None> = Source {
+    name: "pnpm",
+    url: "https://github.com/pnpm/pnpm/releases/download/v9.11.0/pnpm-{TARGET}",
+    cell: OnceCell::const_new(),
+    target: |arch, os| match (arch, os) {
+        ("x86_64", "macos") => Some("macos-x64"),
+        _ => None,
+    },
+    output: output::File { mode: 0o755 },
+    flatten: flatten::None,
 };
 
 #[derive(Debug)]

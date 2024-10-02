@@ -25,7 +25,6 @@ async fn main() -> Result<()> {
     let db = Db::new().await?;
     let styles = Styles::new().await?;
     let themes = Themes::new(styles.clone()).await?;
-
     let reloader = Reloader::new().reload(themes.clone()).build();
 
     let app = App {
