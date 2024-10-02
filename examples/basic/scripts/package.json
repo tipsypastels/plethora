@@ -1,0 +1,6 @@
+{
+  "name": "plethora-examples-basic",
+  "dependencies": {
+    "@hotwired/stimulus": "^3.2.2"
+  }
+}

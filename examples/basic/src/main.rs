@@ -6,6 +6,7 @@ use plethora::{
     db::{Db, Id},
     error::Result,
     reload::Reloader,
+    scripts::Scripts,
     serve::{
         current, public_router, Application, CurrentHooks, CurrentState, Renderer, ServeResult,
     },
@@ -25,12 +26,17 @@ async fn main() -> Result<()> {
     let db = Db::new().await?;
     let styles = Styles::new().await?;
     let themes = Themes::new(styles.clone()).await?;
-    let reloader = Reloader::new().reload(themes.clone()).build();
+    let scripts = Scripts::new().await?;
+    let reloader = Reloader::new()
+        .reload(themes.clone())
+        .reload(scripts.clone())
+        .build();
 
     let app = App {
         db,
         styles,
         themes,
+        scripts,
         reloader,
     };
 
@@ -56,6 +62,7 @@ struct App {
     pub db: Db,
     pub styles: Styles,
     pub themes: Themes,
+    pub scripts: Scripts,
     pub reloader: Reloader,
 }
 
@@ -70,6 +77,10 @@ impl Application for App {
 
     fn themes(&self) -> &Themes {
         &self.themes
+    }
+
+    fn scripts(&self) -> &Scripts {
+        &self.scripts
     }
 
     fn reloader(&self) -> &Reloader {

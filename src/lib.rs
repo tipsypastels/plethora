@@ -15,6 +15,7 @@ pub mod db;
 pub mod helper;
 pub mod reload;
 pub mod scratch;
+pub mod scripts;
 pub mod serve;
 pub mod stuff;
 pub mod styles;
