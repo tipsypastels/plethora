@@ -10,7 +10,7 @@ use plethora::{
         current, public_router, Application, CurrentHooks, CurrentState, Renderer, ServeResult,
     },
     styles::Styles,
-    themes::{props, Themes, ThemesInit},
+    themes::{props, Themes},
     tower::ServiceBuilder,
     tower_cookies::CookieManagerLayer,
 };
@@ -24,10 +24,7 @@ async fn main() -> Result<()> {
 
     let db = Db::new().await?;
     let styles = Styles::new().await?;
-    let themes = Themes::new(ThemesInit {
-        styles: styles.clone(),
-    })
-    .await?;
+    let themes = Themes::new(styles.clone()).await?;
 
     let reloader = Reloader::new().reload(themes.clone()).build();
 

@@ -7,12 +7,12 @@ use ingest::IngestMany;
 use kstring::KString;
 use std::{fmt, future::Future, ops::Deref, sync::Arc};
 
+mod builder;
 mod ingest;
 mod templates;
 mod theme;
 
-#[cfg(feature = "baked")]
-pub use include_dir::include_dir as baked;
+pub use builder::ThemesBuilder;
 pub use liquid::object as props;
 pub use theme::{Theme, ThemeManifest, ThemeManifestTailwind};
 
@@ -22,29 +22,13 @@ pub struct Themes {
     styles: Styles,
 }
 
-#[derive(Debug)]
-pub struct ThemesInit {
-    pub styles: Styles,
-    #[cfg(feature = "baked")]
-    pub baked: include_dir::Dir<'static>,
-}
-
 impl Themes {
-    pub async fn new(init: ThemesInit) -> Result<Self> {
-        let ThemesInit {
-            styles,
-            #[cfg(feature = "baked")]
-            baked,
-        } = init;
+    pub async fn new(styles: Styles) -> Result<Self> {
+        Self::builder(styles).build().await
+    }
 
-        let map = Arc::new(DashMap::new());
-        let this = Self { map, styles };
-
-        #[cfg(feature = "baked")]
-        this.ingest_many::<ingest::Baked>(baked).await?;
-        this.ingest_many::<ingest::Files>(()).await?;
-
-        Ok(this)
+    pub fn builder(styles: Styles) -> ThemesBuilder {
+        ThemesBuilder::new(styles)
     }
 
     pub fn get(&self, slug: &str) -> Option<ThemeGuard> {
