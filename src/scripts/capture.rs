@@ -38,7 +38,7 @@ const ERROR_CHAR: char = '✘';
 pub async fn capture(reader: impl AsyncRead + Unpin) -> Result<()> {
     let mut stream = pin!(parse(reader));
     while let Some(result) = stream.next().await {
-        const TARGET: &str = "forumm::esbuild";
+        const TARGET: &str = "plethora::scripts";
 
         use Kind as K;
         let Entry {
