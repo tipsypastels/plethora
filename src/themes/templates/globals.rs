@@ -54,7 +54,7 @@ pub struct LayoutGlobals<'a, C: CurrentHooks> {
     pub shared: SharedGlobals<'a, C>,
     pub title: Option<&'a str>,
     pub content: &'a str,
-    pub scripts: &'a [Box<str>],
+    pub scripts: &'a [KString],
 }
 
 impl<C: CurrentHooks> From<LayoutGlobals<'_, C>> for Globals {

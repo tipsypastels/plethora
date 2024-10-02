@@ -12,6 +12,10 @@
       };
     </script>
 
+    {% for script in scripts %}
+      <script src="/scripts/{{ script }}?{{ cache_buster }}"></script>
+    {% endfor %}
+
    {% if reload %}
       <script defer src="/__reload__"></script>
     {% endif %}

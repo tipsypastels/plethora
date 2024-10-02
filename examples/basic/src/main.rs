@@ -80,6 +80,10 @@ impl Application for App {
     fn default_theme_slug(&self) -> &str {
         "default"
     }
+
+    fn base_page_title(&self) -> Option<&str> {
+        Some("Basic")
+    }
 }
 
 #[plethora::async_trait]

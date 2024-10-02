@@ -113,18 +113,15 @@ impl Theme {
         current: &CurrentState<C>,
     ) -> Result<String> {
         let template = &self.manifest.layout;
-        let scripts = STUFF.scripts.autoload.clone();
-        let title = base_title;
-        let _ = snapshot;
-        // TODO
-        // let title = view.title(base_title);
+        let mut scripts = STUFF.scripts.autoload.to_vec();
+        let title = snapshot.title(base_title);
 
-        // scripts.extend(view.included_scripts());
+        scripts.extend(snapshot.included_scripts());
 
         let shared = self.shared_globals(template, current);
         let globals = LayoutGlobals {
             shared,
-            title,
+            title: title.as_deref(),
             content,
             scripts: &scripts,
         }

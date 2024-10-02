@@ -1,4 +1,5 @@
 use camino::Utf8Path;
+use kstring::KString;
 use std::{ops::Deref, sync::OnceLock};
 
 mod builder;
@@ -72,7 +73,7 @@ pub struct StuffScratch {
 pub struct StuffScripts {
     pub dir: Box<Utf8Path>,
     pub glob: Box<str>,
-    pub autoload: Box<[Box<str>]>,
+    pub autoload: Box<[KString]>,
 }
 
 #[derive(Debug)]
